@@ -1,5 +1,5 @@
 // 🔥 YAHAN APNA RENDER URL DAALNA
-const RENDER_BACKEND_URL = "https://your-app-name.onrender.com";
+const RENDER_BACKEND_URL = "https://tbp-bcknd-bot.onrender.com";
 
 let tg;
 try { tg = window.Telegram.WebApp; tg.expand(); tg.ready(); } catch(e) {}
