@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TBP Trading Terminal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+</head>
+<body>
+
+    <!-- 🔒 AUTHENTICATION SCREEN -->
+    <div id="auth-screen" class="qx-auth-wrapper">
+        <div class="qx-card">
+            <div class="logo-arena">
+                <div class="radar-pulse"></div>
+                <img src="https://www.image2url.com/r2/default/images/1787903945058-86cf33ea-860b-433c-bb38-af25fa27b76a.jpg" alt="TBP Logo" class="brand-img">
+            </div>
+
+            <h1 class="brand-title">TBP TRADING BOT</h1>
+            <p class="brand-sub">⚡ POWERED BY QUOTEX ⚡</p>
+            
+            <div id="login-form" class="qx-form">
+                <input type="email" id="email" placeholder="Quotex Email" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <input type="number" id="traderId" placeholder="Trader UID" required>
+                <button class="qx-btn-primary" id="btnLogin">AUTHORIZE DEVICE</button>
+            </div>
+
+            <div id="code-form" class="qx-form" style="display: none;">
+                <p class="auth-status text-green">Server Locked. Enter Secret Code.</p>
+                <input type="number" id="auth-code" placeholder="6-Digit 2FA Code" maxlength="6" required>
+                <button class="qx-btn-primary" id="btnSubmitCode">VERIFY ENCRYPTION</button>
+            </div>
+            
+            <div id="waiting-msg" style="display: none;">
+                <div class="qx-loader"></div>
+                <p class="wait-text">Wait For The Quotex<br>Manager's Approval...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📈 INSTITUTIONAL DASHBOARD -->
+    <div id="dashboard-screen" style="display: none;">
+        
+        <header class="qx-header">
+            <div class="head-left">
+                <img src="https://www.image2url.com/r2/default/images/1787903945058-86cf33ea-860b-433c-bb38-af25fa27b76a.jpg" alt="Logo" class="mini-logo">
+                <div class="brand-lockup">
+                    <span class="lock-title">TBP BOT</span>
+                    <span class="lock-sub text-green">● LIVE</span>
+                </div>
+            </div>
+            <div class="head-right">
+                <div class="usage-pill">
+                    <span id="usageCount">0</span> / <span id="limitCount">∞</span>
+                </div>
+                <button class="qx-btn-deposit">Deposit</button>
+            </div>
+        </header>
+
+        <div class="workspace">
+            
+            <!-- 🎛️ TAB 1: SCANNER -->
+            <div id="tab-scanner" class="tab-pane" style="display: block;">
+                <div class="chart-wrapper">
+                    <div id="tv_chart_container"></div>
+                </div>
+
+                <div class="control-panel">
+                    <div class="selectors qx-grid">
+                        <div class="sel-group">
+                            <label>Asset Pair</label>
+                            <select id="assetPair" class="qx-select">
+                                <option value="" disabled selected>Select Pair</option>
+                                <option value="EURUSD">🇪🇺🇺🇸 EUR/USD OTC (92%)</option>
+                                <option value="GBPUSD">🇬🇧🇺🇸 GBP/USD OTC (92%)</option>
+                                <option value="AUDUSD">🇦🇺🇺🇸 AUD/USD OTC (92%)</option>
+                                <option value="USDJPY">🇺🇸🇯🇵 USD/JPY OTC (92%)</option>
+                            </select>
+                        </div>
+                        <div class="sel-group">
+                            <label>Timer</label>
+                            <select id="timeframe" class="qx-select">
+                                <option value="" disabled selected>Select TF</option>
+                                <option value="5s">00:00:05</option>
+                                <option value="10s">00:00:10</option>
+                                <option value="15s">00:00:15</option>
+                                <option value="30s">00:00:30</option>
+                                <option value="1m">00:01:00</option>
+                                <option value="2m">00:02:00</option>
+                                <option value="3m">00:03:00</option>
+                                <option value="5m">00:05:00</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="qx-extract-btn" id="btnExtract">
+                        ANALYZE MARKET
+                    </button>
+                    
+                    <div class="cooldown-panel" id="cooldownPanel" style="display: none;">
+                        <p class="cool-text">PROCESSING TRADE COOLDOWN</p>
+                        <h2 class="cool-timer" id="coolTimer">00:00</h2>
+                        <div class="cool-progress"><div class="cool-bar" id="coolBar"></div></div>
+                    </div>
+                </div>
+
+                <div id="signalResultCard" class="signal-card" style="display: none;">
+                    <div class="sig-head">AI NEURAL PREDICTION</div>
+                    <div class="sig-body">
+                        <h1 id="sigDirection" class="sig-dir">--</h1>
+                        <p class="sig-details"><span id="sigPair">--</span> • <span id="sigTf">--</span></p>
+                        <div class="confluence-wrap">
+                            Confluence: <span id="sigScore" class="accent-blue">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📊 TAB 2: ANALYTICS -->
+            <div id="tab-analytics" class="tab-pane" style="display: none;">
+                <h2 class="section-title">TECHNICAL INTELLIGENCE</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <span class="m-label">RSI (14)</span>
+                        <span class="m-val" id="valRSI">AWAITING</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="m-label">MACD</span>
+                        <span class="m-val" id="valMACD">AWAITING</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="m-label">EMA TREND</span>
+                        <span class="m-val" id="valEMA">AWAITING</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="m-label">VOLATILITY</span>
+                        <span class="m-val" id="valVol">AWAITING</span>
+                    </div>
+                </div>
+                <div class="ai-reasoning">
+                    <span class="m-label accent-blue">AI REASONING</span>
+                    <p id="valReason" class="reason-text">Generate a signal to populate neural data.</p>
+                </div>
+            </div>
+
+            <!-- 📓 TAB 3: JOURNAL -->
+            <div id="tab-journal" class="tab-pane" style="display: none;">
+                <div class="journal-header">
+                    <h2 class="section-title">RECENT SIGNALS</h2>
+                    <button id="btnClearJournal" class="qx-text-btn text-red">Clear</button>
+                </div>
+                <div class="journal-list" id="journalList">
+                    <p class="text-muted text-center" style="padding: 20px;">No history.</p>
+                </div>
+            </div>
+
+            <!-- ⚙️ TAB 4: SETTINGS -->
+            <div id="tab-settings" class="tab-pane" style="display: none;">
+                <h2 class="section-title">PREFERENCES</h2>
+                <div class="settings-wrap">
+                    <p class="text-muted">Trader UID: <span class="text-white" id="dispUid">--</span></p>
+                    <hr class="qx-divider">
+                    <p class="disclaimer-text text-muted">Disclaimer: Trading binary options carries a high level of risk. This AI tool provides technical confluence based on historical market data.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- BOTTOM NAVIGATION -->
+        <nav class="qx-bottom-nav">
+            <div class="nav-item active" data-tab="tab-scanner">
+                <div class="n-icon">📊</div><span class="n-text">Live</span>
+            </div>
+            <div class="nav-item" data-tab="tab-analytics">
+                <div class="n-icon">⚡</div><span class="n-text">Analytics</span>
+            </div>
+            <div class="nav-item" data-tab="tab-journal">
+                <div class="n-icon">📁</div><span class="n-text">Trades</span>
+            </div>
+            <div class="nav-item" data-tab="tab-settings">
+                <div class="n-icon">⚙️</div><span class="n-text">Settings</span>
+            </div>
+        </nav>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
